@@ -7,7 +7,7 @@ package com.grupo07sa.handler;
 import com.grupo07sa.client.ClientSMTP;
 import com.grupo07sa.dato.CommandDTO;
 import com.grupo07sa.dato.CredentialDTO;
-import com.grupo07sa.dato.MensajeDTO;
+import com.grupo07sa.dato.MessageDTO;
 import com.grupo07sa.dato.ResponseDTO;
 import com.grupo07sa.help.Lexer;
 import com.grupo07sa.service.UserService;
@@ -18,12 +18,12 @@ import com.grupo07sa.service.UserService;
  */
 public class HanddlerMessage extends Thread {
 
-    private MensajeDTO mensajeEmisor;
+    private MessageDTO mensajeEmisor;
     private CredentialDTO credencial;
     private UserService userService;
     private ResponseDTO response;
 
-    public HanddlerMessage(CredentialDTO credencial, MensajeDTO mensajeEmisor) {
+    public HanddlerMessage(CredentialDTO credencial, MessageDTO mensajeEmisor) {
         this.mensajeEmisor = mensajeEmisor;
         this.credencial = credencial;
         this.userService = new UserService();

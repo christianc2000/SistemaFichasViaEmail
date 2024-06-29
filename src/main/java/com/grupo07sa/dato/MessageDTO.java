@@ -8,12 +8,12 @@ package com.grupo07sa.dato;
  *
  * @author USER
  */
-public class MensajeDTO {
+public class MessageDTO {
     //private String nombre;
     private String correo;
     private String asunto;
 
-    public MensajeDTO(String correo, String asunto) {
+    public MessageDTO(String correo, String asunto) {
        // this.nombre = nombre;
         this.correo = correo;
         this.asunto = asunto;

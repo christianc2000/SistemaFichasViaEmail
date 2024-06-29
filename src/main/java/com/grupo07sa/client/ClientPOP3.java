@@ -5,7 +5,7 @@
 package com.grupo07sa.client;
 
 import com.grupo07sa.dato.CredentialDTO;
-import com.grupo07sa.dato.MensajeDTO;
+import com.grupo07sa.dato.MessageDTO;
 import com.grupo07sa.handler.HanddlerMessage;
 import java.util.Properties;
 import javax.mail.BodyPart;
@@ -82,7 +82,7 @@ public class ClientPOP3 {
                         System.out.println("receptor: " + receptor);
                         System.out.println("asunto: " + asunto);
                         System.out.println("cuerpo: " + cuerpo);
-                        MensajeDTO mensaje = new MensajeDTO(receptor, asunto);
+                        MessageDTO mensaje = new MessageDTO(receptor, asunto);
                         Thread thread = new Thread(new HanddlerMessage(credencial, mensaje));
                         thread.start();
                     }
