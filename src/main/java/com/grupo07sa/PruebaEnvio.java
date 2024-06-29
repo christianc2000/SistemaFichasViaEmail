@@ -23,6 +23,6 @@ public class PruebaEnvio {
         credencial.setMail_user("grupo24sa");
         credencial.setMail_pass("grup024grup024");
         ClientSMTP clientSMTP = new ClientSMTP(credencial);
-        clientSMTP.enviarCorreo("grupo07sa@tecnoweb.org.bo", "LIST[users];", "LIST[users];");
+        clientSMTP.enviarCorreo("grupo07sa@tecnoweb.org.bo", "LIST[users];", "probando...");
     }
 }

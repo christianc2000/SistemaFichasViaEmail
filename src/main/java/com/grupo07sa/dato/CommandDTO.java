@@ -46,7 +46,7 @@ public class CommandDTO {
         String[] atributos = this.parameters[1].split(",");
 
         for (int i = 0; i < atributos.length; i++) {
-            atributos[i] = atributos[i].split("=").length == 2 ? atributos[i] : atributos[i].split("=")[1];
+            atributos[i] = ((atributos[i].split("=").length == 1) ? atributos[i] : atributos[i].split("=")[0]);
         }
         return atributos;
     }
@@ -64,13 +64,13 @@ public class CommandDTO {
     }
 
     public String getAttributesNameToString() {
-        String atr = "[\n";
+        String atr = "";
         String[] atributos = this.parameters[1].split(",");
 
-        for (int i = 0; i < atributos.length; i++) {
-            atr = atr + "atr(" + i + "): " + (atributos[i].split("=").length == 1 ? atributos[i] : atributos[i].split("=")[0]) + "\n";
+        for (int i = 0; i < atributos.length-1; i++) {
+            atr = atr + (atributos[i].split("=").length == 1 ? atributos[i] : atributos[i].split("=")[0]) + ", ";
         }
-        atr = atr + "]";
+        atr=atr+(atributos[atributos.length-1].split("=").length == 1 ? atributos[atributos.length-1] : atributos[atributos.length-1].split("=")[0]);
         return atr;
     }
 

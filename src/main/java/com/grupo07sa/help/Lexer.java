@@ -64,7 +64,7 @@ public class Lexer {
             String condition = extractCondition(input);
             return new CommandDTO("DELETE", new String[]{tableName, condition});
         } else {
-            throw new IllegalArgumentException("Comando no reconocido: " + input);
+            return new CommandDTO("ERROR", null);
         }
     }
 

@@ -11,24 +11,74 @@ package com.grupo07sa.dato.User;
 public class UserDTO {
 
     private String id;
+    private String ci;
     private String name;
     private String lastname;
+    private String gender;
+    private String celular;
     private String email;
     private String password;
     private String fecha_nacimiento;
     private String foto;
     private String direccion;
+    private String nit;
+    private String razon_social;
     //ResponseBD response = new ResponseBD(null, null, null);
 
     public UserDTO() {
         this.id = null;
+        this.ci=null;
         this.name = null;
         this.lastname = null;
+        this.gender=null;
+        this.celular=null;
         this.fecha_nacimiento = null;
         this.foto = null;
         this.direccion = null;
         this.email = null;
         this.password = null;
+        this.nit=null;
+        this.razon_social=null;
+    }
+
+    public String getCi() {
+        return ci;
+    }
+
+    public void setCi(String ci) {
+        this.ci = ci;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getCelular() {
+        return celular;
+    }
+
+    public void setCelular(String celular) {
+        this.celular = celular;
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        this.nit = nit;
+    }
+
+    public String getRazon_social() {
+        return razon_social;
+    }
+
+    public void setRazon_social(String razon_social) {
+        this.razon_social = razon_social;
     }
 
     public String getId() {
@@ -94,5 +144,37 @@ public class UserDTO {
     public void setDireccion(String direccion) {
         this.direccion = direccion;
     }
-
+    
+    public void insertAtrVal(String atr, String val) {
+        switch (atr.toLowerCase()) {
+            case "id":
+                setId(val);
+                break;
+            case "name":
+                setName(val);
+                break;
+            case "lastname":
+                setLastname(val);
+                break;
+            case "email":
+                setEmail(val);
+                break;
+            case "password":
+                setPassword(val);
+                break;
+            case "fecha_nacimiento":
+                setFecha_nacimiento(val);
+                break;
+            case "foto":
+                setFoto(val);
+                break;
+            case "direccion":
+                setDireccion(val);
+                break;
+            default:
+                // Manejar caso de atributo desconocido
+                System.out.println("Atributo desconocido: " + atr);
+                break;
+        }
+    }
 }

@@ -13,5 +13,6 @@ import java.util.List;
  */
 public interface UserRepository{
     List<UserDTO> getAllUsers();
-    ResponseDTO createUser(String name, String email, String password);
+    List<String[]> getAtrUsers(String[] atributos, String atrs);
+    boolean createUser(String atributos, String[] valores);
 }

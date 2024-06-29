@@ -11,6 +11,8 @@ import com.grupo07sa.dato.MessageDTO;
 import com.grupo07sa.dato.ResponseDTO;
 import com.grupo07sa.help.Lexer;
 import com.grupo07sa.service.UserService;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  *
@@ -47,6 +49,37 @@ public class HanddlerMessage extends Thread {
                         case "users":
                             response = userService.all();
                             if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                String registro = "";
+                                for (int i = 0; i < response.getData().length; i++) {
+                                    for (int j = 0; j < response.getData()[i].length; j++) {
+                                        registro = registro + "\t|\t" + response.getData()[i][j];
+                                    }
+                                    registro = registro + "\n";
+                                }
+                                System.out.println("\t" + response.getTitle() + "\n" + registro);
+                                //ENVIAR LA RESPUESTA
+                                /*String htmlContent = new String(Files.readAllBytes(Paths.get("C:\\Users\\Christian\\Documents\\NetBeansProjects\\SistemaFichasViaEmail\\src\\main\\java\\com\\grupo07sa\\presentacion\\list.html")));
+                                    String insert = "INSERT[users:name=string,lastname=string,birth_date=date,genero=string,celular=number,tipo=string,residencia_actual=string,email=string,password=string,url_foto=string,sueldo=number,formacion=string,nit=string,razon_social=string];";
+                                    String update = "UPDATE[users:id=number,name=string,lastname=string,fecha_nacimiento=date,nit=string,razon_social=string]; COLOQUE TODOS LOS CAMPOS QUE REQUIERA ACTUALIZAR";
+                                    String show = "SHOW[users:id=number];";
+                                    String delete = "DELETE[users:id=number];";
+                                    htmlContent = succesView(htmlContent, response.getTitle(), response.getData(), insert, update, show, delete);
+                                 */
+                                ClientSMTP clientSMTP = new ClientSMTP(credencial);
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), registro);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                System.out.println(response.getError());
+                            }
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
+                } else {//Si es un list con atributos, realizar un select con los atributos 
+                    switch (tabla) {//Verificamos que tabla vamos a Listar de la base de datos
+                        case "users":
+                            System.out.println("getAttributesName: " + comando.getAttributesName().length);
+                            response = userService.listAtr(comando.getAttributesName(), comando.getAttributesNameToString());
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
                                 System.out.println("CREANDO RESPUESTA...");
                                 String registro = "";
                                 for (int i = 0; i < response.getData().length; i++) {
@@ -60,16 +93,8 @@ public class HanddlerMessage extends Thread {
                                 ClientSMTP clientSMTP = new ClientSMTP(credencial);
                                 clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), registro);//ENVIANDO RESPUESTA
                             } else {//Enviar una vista de error
-                                System.out.println(response.getError());
+                                System.out.println("ERROR*********************" + response.getError());
                             }
-                            break;
-                        default:
-                            throw new AssertionError();
-                    }
-                } else {//Si es un list con atributos, realizar un select con los atributos 
-                    switch (tabla) {//Verificamos que tabla vamos a Listar de la base de datos
-                        case "users":
-
                             break;
                         default:
                             throw new AssertionError();
