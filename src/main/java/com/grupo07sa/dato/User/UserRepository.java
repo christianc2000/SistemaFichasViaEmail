@@ -14,5 +14,8 @@ import java.util.List;
 public interface UserRepository{
     List<UserDTO> getAllUsers();
     List<String[]> getAtrUsers(String[] atributos, String atrs);
-    boolean createUser(String atributos, String[] valores);
+    UserDTO createUser(String ci, String name, String lastname, String fecha_nacimiento, String foto, String direccion, String gender, String celular, String email, String password, String nit, String razon_social);
+    UserDTO findUser(String id);
+    UserDTO updateUser(UserDTO user);
+    boolean deleteUserById(String id);
 }

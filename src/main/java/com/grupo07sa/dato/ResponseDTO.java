@@ -9,6 +9,7 @@ package com.grupo07sa.dato;
  * @author USER
  */
 public class ResponseDTO {
+
     private String title;
     private String[][] data;
     private String error;
@@ -19,9 +20,10 @@ public class ResponseDTO {
         this.error = error;
     }
 
-    public ResponseDTO(){
-        
+    public ResponseDTO() {
+
     }
+
     public String getTitle() {
         return title;
     }
@@ -45,5 +47,15 @@ public class ResponseDTO {
     public void setError(String error) {
         this.error = error;
     }
-    
+
+    public String MatrizToString() {
+        String data = "";
+        for (int i = 0; i < this.data.length; i++) {
+            for (int j = 0; j < this.data[i].length - 1; j++) {
+                data = data + (this.data[i][j]==null?" - ":this.data[i][j]) + ", ";
+            }
+            data = data + (this.data[i][this.data[i].length - 1]==null?" - ":this.data[i][this.data[i].length-1]) + "\n";
+        }
+        return data;
+    }
 }

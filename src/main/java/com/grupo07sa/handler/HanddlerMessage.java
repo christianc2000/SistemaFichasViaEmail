@@ -9,8 +9,11 @@ import com.grupo07sa.dato.CommandDTO;
 import com.grupo07sa.dato.CredentialDTO;
 import com.grupo07sa.dato.MessageDTO;
 import com.grupo07sa.dato.ResponseDTO;
+import com.grupo07sa.dato.User.UserDTO;
 import com.grupo07sa.help.Lexer;
 import com.grupo07sa.service.UserService;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -24,55 +27,354 @@ public class HanddlerMessage extends Thread {
     private CredentialDTO credencial;
     private UserService userService;
     private ResponseDTO response;
+    private ClientSMTP clientSMTP;
 
     public HanddlerMessage(CredentialDTO credencial, MessageDTO mensajeEmisor) {
         this.mensajeEmisor = mensajeEmisor;
         this.credencial = credencial;
         this.userService = new UserService();
+        this.clientSMTP = new ClientSMTP(credencial);
+    }
+
+    public String startHTML() {
+        return "<style>\n"
+                + "    .container {\n"
+                + "        display: flex;\n"
+                + "        justify-content: space-around;\n"
+                + "        align-content: center;\n"
+                + "        padding: 20px;\n"
+                + "    }\n"
+                + "    .container-title {\n"
+                + "        display:flex;\n"
+                + "        justify-content: center;\n"
+                + "        align-content: center;\n"
+                + "    }\n"
+                + "    .button {\n"
+                + "        margin: 5px;\n"
+                + "        padding: 30px 60px;\n"
+                + "        font-size: 20px;\n"
+                + "        text-align: center;\n"
+                + "        cursor: pointer;\n"
+                + "        outline: none;\n"
+                + "        color: #ffffff;\n"
+                + "        background-color: #4682B4;\n"
+                + "        border: none;\n"
+                + "        border-radius: 15px;\n"
+                + "\n"
+                + "        text-decoration: none;\n"
+                + "    }\n"
+                + "    .button:hover {\n"
+                + "        background-color: #0080FF\n"
+                + "    }\n"
+                + "\n"
+                + "</style>\n"
+                + "<div class=\"container-title\">\n"
+                + "    <h1>Consultorio San Santiago</h1>\n"
+                + "</div>\n"
+                + "\n"
+                + "<div class=\"container\">\n"
+                + "\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[users];\" class=\"button\">Gestionar Usuario</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[servicios];\" class=\"button\">Gestionar Servicios</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[citas];\" class=\"button\">Gestionar Citas</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[turnos];\" class=\"button\">Gestionar Turnos</a>\n"
+                + "</div>\n"
+                + "\n"
+                + "<!-- Aquí puedes poner el contenido principal de tu página -->\n"
+                + "\n"
+                + "<div class=\"container\">\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[ordens];\" class=\"button\">Gestionar Pagos</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[consultas];\" class=\"button\">Gestionar Consultas</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[historials];\" class=\"button\">Gestionar Historial</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[atencions];\" class=\"button\">Gestionar Reportes y Estadísticas</a>\n"
+                + "</div>";
+    }
+
+    public String errorHTML(String error) {
+        return "<style>\n"
+                + "    .container-title {\n"
+                + "        display:flex;\n"
+                + "        justify-content: center;\n"
+                + "        align-content: center;\n"
+                + "        color: red;\n"
+                + "    }\n"
+                + "    .error {\n"
+                + "        width: 100%;\n"
+                + "        margin:10px;\n"
+                + "        padding: 20px;\n"
+                + "        border: 1px solid red;\n"
+                + "        color: red;\n"
+                + "        font-weight: bold;\n"
+                + "        text-align: center;\n"
+                + "        margin-top: 20px;\n"
+                + "    }\n"
+                + "    .container-subtitle {\n"
+                + "        margin: 10px;\n"
+                + "        font-weight: 400px;\n"
+                + "        color: red;\n"
+                + "    }\n"
+                + "</style>\n"
+                + "<div class=\"container-title\">\n"
+                + "    <h1>Error</h1>\n"
+                + "</div>\n"
+                + "<div class=\"error\">\n"
+                + "    " + error + "\n"
+                + "</div>\n"
+                + "<p class=\"container-subtitle\">Puede ver la ayuda de los comandos colocando <strong>HELP[];</strong> o puede iniciar con las opciones usando el comando <strong>START[];</strong></p>\n"
+                + "";
+    }
+
+    public String helpHTML() {
+        return "<style>\n"
+                + "    .container-title {\n"
+                + "        display:flex;\n"
+                + "        justify-content: center;\n"
+                + "        align-content: center;\n"
+                + "    }\n"
+                + "    table {\n"
+                + "        width: 100%;\n"
+                + "        border-collapse: collapse;\n"
+                + "    }\n"
+                + "    th, td {\n"
+                + "        border: 1px solid black;\n"
+                + "        padding: 15px;\n"
+                + "        text-align: left;\n"
+                + "    }\n"
+                + "    th {\n"
+                + "        background-color: #4682B4;\n"
+                + "        color: white;\n"
+                + "    }\n"
+                + "    .container {\n"
+                + "        display: flex;\n"
+                + "        justify-content: space-around;\n"
+                + "        align-content: center;\n"
+                + "        padding: 20px;\n"
+                + "    }\n"
+                + "\n"
+                + "</style>\n"
+                + "<div class=\"container-title\">\n"
+                + "    <h1>Comandos de ayuda - Consultorio San Santiago</h1>\n"
+                + "</div>\n"
+                + "<div class=\"\">\n"
+                + "    <table>\n"
+                + "        <tr>\n"
+                + "            <th style=\"width: 100px\">Tabla</th>\n"
+                + "            <th>\n"
+                + "                Comando\n"
+                + "            </th> \n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Gestionar usuario</td>\n"
+                + "            <td>\n"
+                + "                <p>LIST[users];</p>\n"
+                + "                <p>LIST[users:id,ci,name,lastname,fecha_nacimiento,foto,direccion,gender,celular,email,password,nit,razon_social];</p>\n"
+                + "                <p>INSERT[users:ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];</p>\n"
+                + "                <p>UPDATE[users:id=number,ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];</p>\n"
+                + "                <p>SHOW[users:id=number];</p>\n"
+                + "                <p>DELETE[users:id=number];</p>\n"
+                + "            </td>\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Dia</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Horario</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Turno</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Servicio</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Sala</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Atencion</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Cita</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Ficha</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Forma Pago</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Orden</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Historial</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Dato Medico</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Consulta</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Examen Fisico</td>\n"
+                + "            <td>Comando 2</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "        <tr>\n"
+                + "            <td>Tratamiento</td>\n"
+                + "            <td>Comando 1</td>\n"
+                + "\n"
+                + "        </tr>\n"
+                + "    </table>\n"
+                + "</div>";
+    }
+
+    public String listarHTML(String title, String[][] dato, String list, String listAtr, String insert, String update, String show, String delete) {
+        String listar = "<style>\n"
+                + "    .container-title {\n"
+                + "        display:flex;\n"
+                + "        justify-content: center;\n"
+                + "        align-content: center;\n"
+                + "    }\n"
+                + "    table {\n"
+                + "        width: 100%;\n"
+                + "        border-collapse: collapse;\n"
+                + "    }\n"
+                + "    th, td {\n"
+                + "        border: 1px solid black;\n"
+                + "        padding: 15px;\n"
+                + "        text-align: left;\n"
+                + "    }\n"
+                + "    th {\n"
+                + "        background-color: #4682B4;\n"
+                + "        color: white;\n"
+                + "    }\n"
+                + "    .container {\n"
+                + "        display: flex;\n"
+                + "        justify-content: space-around;\n"
+                + "        align-content: center;\n"
+                + "        padding: 20px;\n"
+                + "    }\n"
+                + "    .container-title {\n"
+                + "        display:flex;\n"
+                + "        justify-content: center;\n"
+                + "        align-content: center;\n"
+                + "    }\n"
+                + "    .button {\n"
+                + "        margin-top: 20px;\n"
+                + "        padding: 5px 20px;\n"
+                + "        font-size: 16px;\n"
+                + "        text-align: center;\n"
+                + "        cursor: pointer;\n"
+                + "        outline: none;\n"
+                + "        color: #ffffff;\n"
+                + "        background-color: #4682B4;\n"
+                + "        border: none;\n"
+                + "        border-radius: 15px;\n"
+                + "        text-decoration: none;\n"
+                + "        margin-bottom: 20px;\n"
+                + "    }\n"
+                + "    .button:hover{\n"
+                + "        background-color: #0080FF\n"
+                + "    }\n"
+                + "</style>\n"
+                + "<div class=\"container-title\">\n"
+                + "    <h1>" + title + "</h1>\n"
+                + "</div>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + list + "\" class=\"button\">Listar</a>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + listAtr + "\" class=\"button\">Listar por atributo</a>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + insert + "\" class=\"button\">Insertar</a>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + update + "\" class=\"button\">Actualizar</a>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + show + "\" class=\"button\">Mostrar</a>\n"
+                + "<a href=\"mailto:grupo07sa@tecnoweb.org.bo?" + delete + "\" class=\"button\">Eliminar</a>\n"
+                + "<div style=\"margin-top: 10px\">\n"
+                + "    <table>\n"
+                + "  <thead>\n";
+        listar = listar + "<tr>\n";
+        for (int j = 0; j < dato[0].length; j++) {
+            listar = listar + "<th>\n" + dato[0][j] + "</th>\n";
+        }
+        listar = listar + "</tr>\n";
+        listar = listar + "</thead>\n";
+        listar = listar + "<tbody>\n";
+        for (int i = 1; i < dato.length; i++) {
+            listar = listar + "<tr>\n";
+            for (int j = 0; j < dato[i].length; j++) {
+                listar = listar + "<td>\n" + dato[i][j] + "</td>\n";
+            }
+            listar = listar + "</tr>\n";
+        }
+        listar = listar + "</tbody>\n";
+        listar = listar + "    </table>\n"
+                + "</div>";
+
+        return listar;
     }
 
     @Override
     public void run() {
         Lexer sintaxis = new Lexer();
         CommandDTO comando = sintaxis.analizarMensaje(this.mensajeEmisor.getAsunto());
+        String tabla = "";
+        String htmlContent;
+        //users
+        String listUser = "subject=LIST[users];&body=Listar usuario";
+        String listAtrUser = "subject=LIST[users:id,ci,name,lastname,fecha_nacimiento,foto,direccion,gender,celular,email,password,nit,razon_social];&body=Listar usuario por atributo";
+        String insertUser = "subject=INSERT[users:ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];&body=Insertar usuario";
+        String updateUser = "subject=UPDATE[users:ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];&body=Actualizar usuario";
+        String showUser = "subject=SHOW[users:id=number];&body=Mostrar usuario";
+        String deleteUser = "subject=DELETE[users:id=number];&body=Eliminar usuario";
+        //
         switch (comando.getCommand()) {
             case "START"://Empezar, mandar la vista de los casos de uso del sistema
-
+                System.out.println("Mostrar opciones de inicio");
+                this.clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Empezando...", startHTML());
                 break;
             case "HELP"://Enviar la vista con los comandos
-
+                System.out.println("Mostrar help");
+                this.clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), mensajeEmisor.getAsunto(), helpHTML());
                 break;
             case "LIST":
-                String tabla = comando.getNameTable();
+                tabla = comando.getNameTable();
                 if (comando.getParameters().length == 1) {//Si es un list sin atributos, realizar un all de la tabla
                     switch (tabla) {//Verificamos que tabla vamos a Listar de la base de datos
                         case "users":
                             response = userService.all();
                             if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
-                                String registro = "";
-                                for (int i = 0; i < response.getData().length; i++) {
-                                    for (int j = 0; j < response.getData()[i].length; j++) {
-                                        registro = registro + "\t|\t" + response.getData()[i][j];
-                                    }
-                                    registro = registro + "\n";
-                                }
-                                System.out.println("\t" + response.getTitle() + "\n" + registro);
-                                //ENVIAR LA RESPUESTA
-                                /*String htmlContent = new String(Files.readAllBytes(Paths.get("C:\\Users\\Christian\\Documents\\NetBeansProjects\\SistemaFichasViaEmail\\src\\main\\java\\com\\grupo07sa\\presentacion\\list.html")));
-                                    String insert = "INSERT[users:name=string,lastname=string,birth_date=date,genero=string,celular=number,tipo=string,residencia_actual=string,email=string,password=string,url_foto=string,sueldo=number,formacion=string,nit=string,razon_social=string];";
-                                    String update = "UPDATE[users:id=number,name=string,lastname=string,fecha_nacimiento=date,nit=string,razon_social=string]; COLOQUE TODOS LOS CAMPOS QUE REQUIERA ACTUALIZAR";
-                                    String show = "SHOW[users:id=number];";
-                                    String delete = "DELETE[users:id=number];";
-                                    htmlContent = succesView(htmlContent, response.getTitle(), response.getData(), insert, update, show, delete);
-                                 */
-                                ClientSMTP clientSMTP = new ClientSMTP(credencial);
-                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), registro);//ENVIANDO RESPUESTA
+                                htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                             } else {//Enviar una vista de error
-                                System.out.println(response.getError());
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
                             }
                             break;
                         default:
-                            throw new AssertionError();
+                            htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
                     }
                 } else {//Si es un list con atributos, realizar un select con los atributos 
                     switch (tabla) {//Verificamos que tabla vamos a Listar de la base de datos
@@ -80,41 +382,98 @@ public class HanddlerMessage extends Thread {
                             System.out.println("getAttributesName: " + comando.getAttributesName().length);
                             response = userService.listAtr(comando.getAttributesName(), comando.getAttributesNameToString());
                             if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
-                                System.out.println("CREANDO RESPUESTA...");
-                                String registro = "";
-                                for (int i = 0; i < response.getData().length; i++) {
-                                    for (int j = 0; j < response.getData()[i].length; j++) {
-                                        registro = registro + "\t|\t" + response.getData()[i][j];
-                                    }
-                                    registro = registro + "\n";
-                                }
-                                System.out.println("\t" + response.getTitle() + "\n" + registro);
-                                //ENVIAR LA RESPUESTA
-                                ClientSMTP clientSMTP = new ClientSMTP(credencial);
-                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), registro);//ENVIANDO RESPUESTA
+                                htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                             } else {//Enviar una vista de error
-                                System.out.println("ERROR*********************" + response.getError());
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
                             }
                             break;
                         default:
-                            throw new AssertionError();
+                            htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
                     }
                 }
                 break;
             case "INSERT":
-
+                tabla = comando.getNameTable();
+                switch (tabla) {
+                    case "users":
+                        response = userService.create(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    default:
+                        htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                        clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
+                }
                 break;
             case "UPDATE":
-
+                tabla = comando.getNameTable();
+                switch (tabla) {
+                    case "users":
+                        response = userService.update(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    default:
+                        htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                        clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
+                }
                 break;
             case "SHOW":
-
+                tabla = comando.getNameTable();
+                switch (tabla) {
+                    case "users":
+                        response = userService.find(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    default:
+                        htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                        clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
+                }
                 break;
             case "DELETE":
-
+                tabla = comando.getNameTable();
+                switch (tabla) {
+                    case "users":
+                        response = userService.delete(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    default:
+                        htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
+                        clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
+                }
                 break;
             default:
-                throw new AssertionError();
+                htmlContent = errorHTML("Error sintaxis no válida");
+                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
         }
         System.out.println("FIN DEL HILO");
     }

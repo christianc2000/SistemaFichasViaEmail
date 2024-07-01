@@ -5,6 +5,7 @@
 package com.grupo07sa.help;
 
 import com.grupo07sa.dato.CommandDTO;
+import com.grupo07sa.dato.User.UserDTO;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,11 +95,20 @@ public class Lexer {
 
     /*public static void main(String[] args) {
         Lexer analizador = new Lexer();
-        CommandDTO comando = analizador.analizarMensaje("INSERT[users:id=1,nombre=christian celso,apellido=mamani soliz];");
+        CommandDTO comando = analizador.analizarMensaje("INSERT[users:ci=1,name=christian celso,lastname=mamani soliz];");
         System.out.println("Comando: " + comando.getCommand());
         System.out.println("Parametro: " + comando.getParametersToString());
-        System.out.println("tabla: "+comando.getNameTable());
-        System.out.println("atributos: "+comando.getAttributesNameToString());
-        System.out.println("atributos con valor: "+comando.getAttributesValueToString());
+        System.out.println("tabla: " + comando.getNameTable());
+        System.out.println("atributos: " + comando.getAttributesNameToString());
+        System.out.println("atributos con valor: " + comando.getAttributesValueToString());
+        System.out.println("filas: " + comando.getAttributesValue().length);
+        System.out.println("columnas: " + comando.getAttributesValue()[0].length);
+
+        UserDTO user = new UserDTO();
+        for (int i = 0; i < comando.getAttributesValue().length; i++) {
+            user.setAttribute(comando.getAttributesValue()[i][0], comando.getAttributesValue()[i][1]);
+        }
+        System.out.println("ci: "+user.getCi());
+        System.out.println("nombre: "+user.getName());
     }*/
 }

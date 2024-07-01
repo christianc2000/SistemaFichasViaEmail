@@ -34,7 +34,7 @@ public class UserService {
 
         if (users != null) {
             data = new String[users.size() + 1][13];  // Incrementa el tamaño para la fila de encabezado
-            System.out.println("cantidad de usuarios: "+users.size());
+            System.out.println("cantidad de usuarios: " + users.size());
             // Llena la primera fila con los nombres de los atributos
             data[0][0] = "ID";
             data[0][1] = "CI";
@@ -79,7 +79,7 @@ public class UserService {
         } catch (Exception e) {
             error = "Error al obtener los usuarios: " + e.getMessage();
         }
-        String title = "Lista de Usuarios";
+        String title = "Lista de Usuarios por atributo";
         String[][] data = null;
 
         if (users != null) {
@@ -102,8 +102,145 @@ public class UserService {
         return new ResponseDTO(title, data, error);
     }
 
-    public ResponseDTO create(String atributo, String valor) {
-
-        return new ResponseDTO(null, null, null);
+    public ResponseDTO find(String[][] atributosValor) {
+        UserDTO user = new UserDTO();
+        String error = null;
+        for (int i = 0; i < atributosValor.length; i++) {
+            user.setAttribute(atributosValor[i][0], atributosValor[i][1]);
+        }
+        if (!user.isValidId()) {
+            error = "Error de validación";
+            return new ResponseDTO("Buscar usuario", null, error);
+        }
+        try {
+            user = userRepositoryImpl.findUser(user.getId());
+        } catch (Exception e) {
+            error = "Error: " + e;
+        }
+        return new ResponseDTO("Mostrar usuario", user.UserToMatriz(), error);
     }
+
+    public ResponseDTO create(String[][] atributosValor) {
+        UserDTO user = new UserDTO();
+        String error = null;
+        for (int i = 0; i < atributosValor.length; i++) {
+            user.setAttribute(atributosValor[i][0], atributosValor[i][1]);
+        }
+        try {
+            if (user.isValidCreate()) {
+                user = userRepositoryImpl.createUser(user.getCi(), user.getName(), user.getLastname(), user.getFecha_nacimiento(), user.getFoto(), user.getDireccion(), user.getGender(), user.getCelular(), user.getEmail(), user.getPassword(), user.getNit(), user.getRazon_social());
+            } else {
+                error = "Error: Datos invalidos para crear un usuario";
+            }
+
+        } catch (Exception e) {
+            error = "Error: " + e;
+        }
+
+        return new ResponseDTO("Crear usuario", user.UserToMatriz(), error);
+    }
+
+    public ResponseDTO update(String[][] atributosValor) {
+        String error = null;
+        UserDTO userRequest = new UserDTO();
+        UserDTO user = new UserDTO();
+        for (int i = 0; i < atributosValor.length; i++) {
+            userRequest.setAttribute(atributosValor[i][0], atributosValor[i][1]);
+        }
+        if (userRequest.isValidUpdate()) {
+            try {
+                user = userRepositoryImpl.findUser(userRequest.getId());
+                if (user == null) {
+                    error = "Error: Usuario no encontrado";
+                    return new ResponseDTO("Actualizar usuario", null, error);
+                }
+                user.setCi(userRequest.getCi() != null ? userRequest.getCi() : user.getCi());
+                user.setName(userRequest.getName() != null ? userRequest.getName() : user.getName());
+                user.setLastname(userRequest.getLastname() != null ? userRequest.getLastname() : user.getLastname());
+                user.setFecha_nacimiento(userRequest.getFecha_nacimiento() != null ? userRequest.getFecha_nacimiento() : user.getFecha_nacimiento());
+                user.setFoto(userRequest.getFoto() != null ? userRequest.getFoto() : user.getFoto());
+                user.setDireccion(userRequest.getDireccion() != null ? userRequest.getDireccion() : user.getDireccion());
+                user.setGender(userRequest.getGender() != null ? userRequest.getGender() : user.getGender());
+                user.setCelular(userRequest.getCelular() != null ? userRequest.getCelular() : user.getCelular());
+                user.setEmail(userRequest.getEmail() != null ? userRequest.getEmail() : user.getEmail());
+                user.setPassword(userRequest.getPassword() != null ? userRequest.getPassword() : user.getPassword());
+                user.setNit(userRequest.getNit() != null ? userRequest.getNit() : user.getNit());
+                user.setRazon_social(userRequest.getRazon_social() != null ? userRequest.getRazon_social() : user.getRazon_social());
+
+                user = userRepositoryImpl.updateUser(user);
+                if (user == null) {
+                    error = "Error al actualizar el usuario";
+                }
+            } catch (Exception e) {
+                error = "Error: " + e;
+                return new ResponseDTO("Actualizar usuario", null, error);
+            }
+            return new ResponseDTO("Actualizar usuario", user.UserToMatriz(), error);
+        } else {
+            error = "Error: Error de validación";
+            return new ResponseDTO("Actualizar usuario", null, error);
+        }
+    }
+
+    public ResponseDTO delete(String[][] atributosValor) {
+        String error = null;
+        UserDTO user = new UserDTO();
+        for (int i = 0; i < atributosValor.length; i++) {
+            user.setAttribute(atributosValor[i][0], atributosValor[i][1]);
+        }
+        if (!user.isValidId()) {
+            error = "Error de validación";
+            return new ResponseDTO("Buscar usuario", null, error);
+        }
+        boolean isDeleted = false;
+        try {
+            isDeleted = userRepositoryImpl.deleteUserById(user.getId());
+            if (!isDeleted) {
+                error = "Error al intentar eliminar al usuario";
+            }
+        } catch (Exception e) {
+            error = "Error al eliminar el usuario: " + e.getMessage();
+        }
+        return new ResponseDTO("Eliminar usuario", null, error);
+    }
+
+    //public static void main(String[] args) {
+    // Crear instancia del servicio de usuarios
+    //UserService userService = new UserService();
+    /*ResponseDTO response = response = userService.find("1");
+
+        if (response.getError() == null) {
+            System.out.println("Usuario encontrado");
+            System.out.println(response.MatrizToString());
+        } else {
+            System.out.println("Error: " + response.getError());
+        }*/
+    // Definir los atributos y valores del usuario a crear
+    //String[][] atributosValor = {
+    //    {"id", "15"},
+    //{"ci", "12345678"},
+    //{"name", "Juan Actualizado"},
+    //{"lastname", "Perez Actualizado"}, //{"fecha_nacimiento", "1990-01-01"},
+    //{"foto", "juan.jpg"},
+    //{"direccion", "Calle Falsa 123"},
+    //{"gender", "M"},
+    //{"celular", "987654321"},
+    //    {"email", "juan@example.com"},
+    //    {"password", "12345678"},
+    //    {"nit", "11223344"},
+    //    {"razon_social", "Ana Rodriguez Actualizado"}
+    //};
+    //String atributos = "ci, name, lastname, fecha_nacimiento, foto, direccion, gender, celular, email, nit, razon_social";
+    //ResponseDTO response = new ResponseDTO(null, null, null);
+    // Llamar al método create del servicio de usuarios
+    //response = userService.create(atributosValor, atributos);
+    //System.out.println("Atributos Valor: " + atributosValor.length);
+    //response = userService.delete("10");
+    // Imprimir el resultado
+    //if (response.getError() == null) {
+    //  System.out.println("Usuario ELIMINADO exitosamente.");
+    //} else {
+    //  System.out.println(response.getError());
+    //}
+    // }
 }
