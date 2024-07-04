@@ -5,7 +5,7 @@
 package com.grupo07sa.service;
 
 import com.grupo07sa.dato.ResponseDTO;
-import com.grupo07sa.dato.User.UserDTO;
+import com.grupo07sa.dato.User.dto.UserDTO;
 import com.grupo07sa.dato.User.UserRepositoryImpl;
 import java.util.List;
 

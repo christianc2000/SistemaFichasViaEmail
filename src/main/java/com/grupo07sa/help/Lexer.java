@@ -5,7 +5,7 @@
 package com.grupo07sa.help;
 
 import com.grupo07sa.dato.CommandDTO;
-import com.grupo07sa.dato.User.UserDTO;
+import com.grupo07sa.dato.User.dto.UserDTO;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,6 +49,7 @@ public class Lexer {
             String[] attributes = extractAttributes(input);
             return new CommandDTO("LIST", new String[]{tableName, String.join(",", attributes)});
         } else if (patronInsert.matcher(input).matches()) {
+            System.out.println("ingresa al insertar del input: "+input);
             String tableName = extractTableName(input);
             String[] keyValues = extractKeyValues(input);
             return new CommandDTO("INSERT", new String[]{tableName, String.join(",", keyValues)});

@@ -22,6 +22,6 @@ public class PruebaEnvio {
         credencial.setMail_user("grupo24sa");
         credencial.setMail_pass("grup024grup024");
         ClientSMTP clientSMTP = new ClientSMTP(credencial);
-        clientSMTP.enviarCorreo("grupo07sa@tecnoweb.org.bo", "INSERT[users:ci=1729121,name=string,lastname=string,fecha_nacimiento=1999-02-02,foto=string,direccion=string,gender=M,celular=77678654,email=prueba@gmail.com,password=string,nit=string,razon_social=string];", "Insertar usuarios...");
+        clientSMTP.enviarCorreo("grupo07sa@tecnoweb.org.bo", "INSERT[pagos:nit=1578217,razon_social=Christian Mamani,email=christian@gmail.com,celular=77382831,trabajador=Dr Ventura,servicio=Ecografia Abdominal,horario=08:30-12:00,tipo_servicio=Medico,costo=0.01,forma_pago=QR,paciente_id=7,ficha_id=1];", "Insertar usuarios...");
     }
 }
