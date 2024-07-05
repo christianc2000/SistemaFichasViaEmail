@@ -19,6 +19,7 @@ public class Lexer {
     private Pattern patronStart;
     private Pattern patronHelp;
     private Pattern patronList;
+    private Pattern patronAtention;
     private Pattern patronListAttributes;
     private Pattern patronInsert;
     private Pattern patronUpdate;
@@ -28,6 +29,7 @@ public class Lexer {
     public Lexer() {
         this.patronStart = Pattern.compile("^START\\[\\];$");
         this.patronHelp = Pattern.compile("^HELP\\[\\];$");
+        this.patronAtention = Pattern.compile("^ATENTIONS\\[\\];$");
         this.patronList = Pattern.compile("^LIST\\[[a-zA-Z0-9_]+\\];$");
         this.patronListAttributes = Pattern.compile("^LIST\\[[a-zA-Z0-9_]+:(?:[a-zA-Z0-9_]+,)*[a-zA-Z0-9_]+\\];$");
         this.patronInsert = Pattern.compile("^INSERT\\[[a-zA-Z0-9_]+:(?:[a-zA-Z0-9_]+=[\\w\\-\\s@./:]+,)*[a-zA-Z0-9_]+=[\\w\\-\\s@./:]+\\];$");
@@ -41,6 +43,8 @@ public class Lexer {
             return new CommandDTO("START", null);
         } else if (patronHelp.matcher(input).matches()) {
             return new CommandDTO("HELP", null);
+        } else if (patronAtention.matcher(input).matches()) {
+            return new CommandDTO("ATENTIONS", null);
         } else if (patronList.matcher(input).matches()) {
             String tableName = extractTableName(input);
             return new CommandDTO("LIST", new String[]{tableName});
