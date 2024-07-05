@@ -4,6 +4,7 @@
  */
 package com.grupo07sa.dato.Pago.dto;
 
+import com.grupo07sa.dato.User.dto.PacienteDTO;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class PagoDTO {
     private Timestamp fecha_pago;
     private String fecha_expiracion;
     private int paciente_id;
+    private PacienteDTO paciente;
     private int ficha_id;
     private Timestamp created_at;
     private Timestamp updated_at;
@@ -53,6 +55,14 @@ public class PagoDTO {
 
     public void setFecha_pago(Timestamp fecha_pago) {
         this.fecha_pago = fecha_pago;
+    }
+
+    public PacienteDTO getPaciente() {
+        return paciente;
+    }
+
+    public void setPaciente(PacienteDTO paciente) {
+        this.paciente = paciente;
     }
 
     //Validación para crear

@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -95,5 +97,95 @@ public class PagoRepositoryImpl implements PagoRepository {
         }
     }
 
-   
+    /*@Override
+    public List<PagoDTO> getAllPagos() {
+        Connection conn = null;
+        List<PagoDTO> pagoList = new ArrayList<>();
+
+        try {
+            conn = db.establecerConexion();
+            String sql = "SELECT *  FROM pagos, pacientes, users WHERE users.id=pacientes.id AND pagos.paciente_id=pacientes.id;";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                TrabajadorDTO trabajador = new TrabajadorDTO();
+                trabajador.setId(rs.getString("id"));
+                trabajador.setCi(rs.getString("ci"));
+                trabajador.setName(rs.getString("name"));
+                trabajador.setLastname(rs.getString("lastname"));
+                trabajador.setFecha_nacimiento(rs.getString("fecha_nacimiento"));
+                trabajador.setFoto(rs.getString("foto"));
+                trabajador.setDireccion(rs.getString("direccion"));
+                trabajador.setGender(rs.getString("gender"));
+                trabajador.setCelular(rs.getString("celular"));
+                trabajador.setEmail(rs.getString("email"));
+                trabajador.setPassword(rs.getString("password"));
+                trabajador.setNit(rs.getString("nit"));
+                trabajador.setRazon_social(rs.getString("razon_social"));
+                trabajador.setEspecialidad(rs.getString("especialidad"));
+                trabajador.setTipo(rs.getString("tipo"));
+                trabajador.setCreated_at(rs.getTimestamp("created_at_t"));
+                trabajador.setUpdated_at(rs.getTimestamp("updated_at_t"));
+                trabajadorList.add(trabajador);
+            }
+        } catch (SQLException e) {
+            // Translate the SQL error into a custom exception
+            int errorCode = e.getErrorCode(); // Implement this method to map SQL error codes
+            throw new MyException("Error al obtener usuarios de la base de datos", errorCode);
+        } finally {
+            if (conn != null) {
+                db.cerrarConexion();
+            }
+        }
+        System.out.println("cantidad de registro de usuarios: " + trabajadorList.size());
+        return trabajadorList;
+    }*/
+    @Override
+    public List<PagoDTO> getAllPagos() {
+        Connection conn = null;
+        List<PagoDTO> pagoList = new ArrayList<>();
+
+        try {
+            conn = db.establecerConexion();
+            String sql = "SELECT * FROM pagos;";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                PagoDTO pago = new PagoDTO();
+                pago.setId(rs.getInt("id"));
+                pago.setNit(rs.getString("nit"));
+                pago.setRazon_social(rs.getString("razon_social"));
+                pago.setEmail(rs.getString("email"));
+                pago.setCelular(rs.getString("celular"));
+                pago.setTrabajador(rs.getString("trabajador"));
+                pago.setServicio(rs.getString("servicio"));
+                pago.setHorario(rs.getString("horario"));
+                pago.setTipo_servicio(rs.getString("tipo_servicio"));
+                pago.setCosto(rs.getFloat("costo"));
+                pago.setForma_pago(rs.getString("forma_pago"));
+                pago.setQr(rs.getString("qr"));
+                pago.setEstado(rs.getString("estado"));
+                pago.setFecha_pago(rs.getTimestamp("fecha_pago"));
+                pago.setFecha_expiracion(rs.getString("fecha_expiracion"));
+                pago.setPaciente_id(rs.getInt("paciente_id"));
+                pago.setFicha_id(rs.getInt("ficha_id"));
+                pago.setCreated_at(rs.getTimestamp("created_at"));
+                pago.setUpdated_at(rs.getTimestamp("updated_at"));
+                pagoList.add(pago);
+            }
+        } catch (SQLException e) {
+            // Translate the SQL error into a custom exception
+            int errorCode = e.getErrorCode(); // Implement this method to map SQL error codes
+            throw new MyException("Error al obtener pagos de la base de datos", errorCode);
+        } finally {
+            if (conn != null) {
+                db.cerrarConexion();
+            }
+        }
+        System.out.println("cantidad de registro de pagos: " + pagoList.size());
+        return pagoList;
+    }
+
 }

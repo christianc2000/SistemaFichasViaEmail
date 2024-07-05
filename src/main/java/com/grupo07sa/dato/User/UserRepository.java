@@ -26,21 +26,21 @@ public interface UserRepository {
 
     //ADMINISTRADOR
     List<AdministradorDTO> getAllAdministrador();
-    AdministradorDTO createAdministrador(String ci, String name, String lastname, String fecha_nacimiento, String foto, String direccion, String gender, String celular, String email, String password, String nit, String razon_social);
+    AdministradorDTO createAdministrador(String id);
     AdministradorDTO findAdministrador(String id);
     AdministradorDTO updateAdministrador(AdministradorDTO admin);
     boolean deleteAdministradorUserById(String id);
 
     //TRABAJADOR
     List<TrabajadorDTO> getAllTrabajador();
-    TrabajadorDTO createTrabajador(String ci, String name, String lastname, String fecha_nacimiento, String foto, String direccion, String gender, String celular, String email, String password, String nit, String razon_social, String especialidad, String tipo);
+    TrabajadorDTO createTrabajador(String id, String especialidad, String tipo);
     TrabajadorDTO findTrabajador(String id);
     TrabajadorDTO updateTrabajador(TrabajadorDTO admin);
     boolean deleteTrabajadorUserById(String id);
 
     //PACIENTE
     List<PacienteDTO> getAllPaciente();
-    PacienteDTO createPaciente(String ci, String name, String lastname, String fecha_nacimiento, String foto, String direccion, String gender, String celular, String email, String password, String nit, String razon_social, String profesion);
+    PacienteDTO createPaciente(String id, String profesion);
     PacienteDTO findPaciente(String id);
     PacienteDTO updatePaciente(PacienteDTO admin);
     boolean deletePacienteUserById(String id);

@@ -162,11 +162,72 @@ public class PagoService {
             //qrImageBase64 = "<img src='" + qrImageBase64 + "' alt='Imagen base64'>";
             //System.out.println(qrImageBase64);
             //response_pago.setTagImage(qrImageBase64);
-
             return response_pago;
         }
     }
 
+    public ResponseDTO allPagos() {
+        List<PagoDTO> pagos = null;
+        String error = null;
+        try {
+            pagos = pagoRepositoryImpl.getAllPagos();
+        } catch (Exception e) {
+            error = "Error al obtener los pagos: " + e.getMessage();
+        }
+        String title = "Lista de Pagos";
+        String[][] data = null;
+
+        if (pagos != null) {
+            data = new String[pagos.size() + 1][19];  // Incrementa el tamaño para la fila de encabezado
+            System.out.println("cantidad de pagos: " + pagos.size());
+            // Llena la primera fila con los nombres de los atributos
+            data[0][0] = "ID";
+            data[0][1] = "NIT";
+            data[0][2] = "RAZON SOCIAL";
+            data[0][3] = "CORREO";
+            data[0][4] = "CELULAR";
+            data[0][5] = "TRABAJADOR";
+            data[0][6] = "SERVICIO";
+            data[0][7] = "HORARIO";
+            data[0][8] = "TIPO DE SERVICIO";
+            data[0][9] = "COSTO";
+            data[0][10] = "FORMA DE PAGO";
+            data[0][11] = "QR";
+            data[0][12] = "ESTADO";
+            data[0][13] = "FECHA DE PAGO";
+            data[0][14] = "FECHA DE EXPIRACIÓN";
+            data[0][15] = "PACIENTE ID";
+            data[0][16] = "FICHA ID";
+            data[0][17] = "FECHA DE CREACIÓN";
+            data[0][18] = "FECHA DE ACTUALIZACIÓN";
+            // Llena las filas siguientes con los datos de los usuarios
+            for (int i = 0; i < pagos.size(); i++) {
+                PagoDTO pago = pagos.get(i);
+                data[i + 1][0] = String.valueOf(pago.getId());
+                data[i + 1][1] = pago.getNit();
+                data[i + 1][2] = pago.getRazon_social();
+                data[i + 1][3] = pago.getEmail();
+                data[i + 1][4] = pago.getCelular();
+                data[i + 1][5] = pago.getTrabajador();
+                data[i + 1][6] = pago.getServicio();
+                data[i + 1][7] = pago.getHorario();
+                data[i + 1][8] = pago.getTipo_servicio();
+                data[i + 1][9] = String.valueOf(pago.getCosto());
+                data[i + 1][10] = pago.getForma_pago();
+                data[i + 1][11] = pago.getQr();
+                data[i + 1][12] = pago.getEstado();
+                data[i + 1][13] = String.valueOf(pago.getFecha_pago());
+                data[i + 1][14] = pago.getFecha_expiracion();
+                data[i + 1][15] = String.valueOf(pago.getPaciente_id());
+                data[i + 1][16] = String.valueOf(pago.getFicha_id());
+                data[i + 1][17] = String.valueOf(pago.getCreated_at());
+                data[i + 1][18] = String.valueOf(pago.getUpdated_at());
+
+            }
+        }
+
+        return new ResponseDTO(title, data, error);
+    }
     /*public static void main(String[] args) {
         //Crear instancia del servicio de usuarios
         PagoService pagoService = new PagoService();
@@ -178,7 +239,7 @@ public class PagoService {
         } else {
             System.out.println("Error: " + response.getError());
         }*/
-        //Definir los atributos y valores del usuario a crear
+    //Definir los atributos y valores del usuario a crear
     /*    String[][] atributosValor = {
             {"nit", "1578217"},
             {"razon_social", "Christian Mamani"},

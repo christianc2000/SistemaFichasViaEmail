@@ -11,7 +11,11 @@ import com.grupo07sa.dato.MessageDTO;
 import com.grupo07sa.dato.ResponseDTO;
 import com.grupo07sa.dato.User.dto.UserDTO;
 import com.grupo07sa.help.Lexer;
+import com.grupo07sa.presentacion.FichaPresentation;
+import com.grupo07sa.presentacion.UserPresentation;
+import com.grupo07sa.service.FichaService;
 import com.grupo07sa.service.PagoService;
+import com.grupo07sa.service.ServicioService;
 import com.grupo07sa.service.UserService;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +32,8 @@ public class HanddlerMessage extends Thread {
     private CredentialDTO credencial;
     private UserService userService;
     private PagoService pagoService;
+    private ServicioService servicioService;
+    private FichaService fichaService;
     private ResponseDTO response;
     private ClientSMTP clientSMTP;
 
@@ -36,6 +42,8 @@ public class HanddlerMessage extends Thread {
         this.credencial = credencial;
         this.userService = new UserService();
         this.pagoService = new PagoService();
+        this.fichaService = new FichaService();
+        this.servicioService = new ServicioService();
         this.clientSMTP = new ClientSMTP(credencial);
     }
 
@@ -78,18 +86,18 @@ public class HanddlerMessage extends Thread {
                 + "<div class=\"container\">\n"
                 + "\n"
                 + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[users];&body=LIST[users];\" class=\"button\">Gestionar Usuario</a>\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[servicios];&body=LIST[servicios];\" class=\"button\">Gestionar Servicios</a>\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[citas];&body=LIST[citas];\" class=\"button\">Gestionar Citas</a>\n"
                 + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[turnos];&body=LIST[turnos];\" class=\"button\">Gestionar Turnos</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[fichas];&body=LIST[fichas];\" class=\"button\">Gestionar Fichas</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[citas];&body=LIST[citas];\" class=\"button\">Gestionar Citas y Consultas</a>\n"
                 + "</div>\n"
                 + "\n"
                 + "<!-- Aquí puedes poner el contenido principal de tu página -->\n"
                 + "\n"
                 + "<div class=\"container\">\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[ordens];&body=LIST[ordens];\" class=\"button\">Gestionar Pagos</a>\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[consultas];\" class=\"button\">Gestionar Consultas</a>\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[historials];\" class=\"button\">Gestionar Historial</a>\n"
-                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=Listar&body=LIST[atencions];\" class=\"button\">Gestionar Reportes y Estadísticas</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[historials];&body=LIST[historials];\" class=\"button\">Gestionar Historial</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[servicios];&body=LIST[servicios];\" class=\"button\">Gestionar Servicios</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[pagos];&body=LIST[pagos];\" class=\"button\">Gestionar Pagos</a>\n"
+                + "    <a href=\"mailto:grupo07sa@tecnoweb.org.bo?subject=LIST[estadisticas];&body=LIST[estadisticas];\" class=\"button\">Reportes y Estadísticas</a>\n"
                 + "</div>";
     }
 
@@ -423,17 +431,20 @@ public class HanddlerMessage extends Thread {
     public void run() {
         Lexer sintaxis = new Lexer();
         CommandDTO comando = sintaxis.analizarMensaje(this.mensajeEmisor.getAsunto());
+        UserPresentation userPresentation = new UserPresentation();
+        FichaPresentation fichaPresentation = new FichaPresentation();
         String tabla = "";
         String htmlContent;
-        //users
-        String listUser = "subject=LIST[users];&body=Listar usuario";
-        String listAtrUser = "subject=LIST[users:id,ci,name,lastname,fecha_nacimiento,foto,direccion,gender,celular,email,password,nit,razon_social];&body=Listar usuario por atributo";
-        String insertUser = "subject=INSERT[users:ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];&body=Insertar usuario";
-        String updateUser = "subject=UPDATE[users:ci=string,name=string,lastname=string,fecha_nacimiento=date,foto=string,direccion=string,gender=string,celular=string,email=string,password=string,nit=string,razon_social=string];&body=Actualizar usuario";
-        String showUser = "subject=SHOW[users:id=number];&body=Mostrar usuario";
-        String deleteUser = "subject=DELETE[users:id=number];&body=Eliminar usuario";
-        //pagos
+//pagos
         String insertPago = "subject=INSERT[pagos:nit=string,razon_social=string,email=string,celular=string,trabajador=string,servicio=string,horario=string,tipo_servicio=string,costo=float,forma_pago=string,paciente_id=number,ficha_id=number];&body=Insertar pago por qr";
+        //servicios
+        String listServicio = "subject=LIST[servicios];&body=Listar servicios";
+        String listAtrServicio = "subject=LIST[servicios:id,nombre,foto,costo,sala_id,tipo_servicio_id];&body=Listar servicios por atributo";
+        String insertServicio = "subject=INSERT[servicios:nombre=string,foto=string or null,costo=float,sala_id=number,tipo_servicio_id=number];&body=Insertar servicios";
+        String updateServicio = "subject=UPDATE[servicios:id=number,nombre=string,foto=string or null,costo=float,sala_id=number,tipo_servicio_id=number];&body=Actualizar servicios";
+        String showServicio = "subject=SHOW[servicios:id=number];&body=Mostrar servicios";
+        String deleteServicio = "subject=DELETE[servicios:id=number];&body=Eliminar servicios";
+
         switch (comando.getCommand()) {
             case "START"://Empezar, mandar la vista de los casos de uso del sistema
                 System.out.println("Mostrar opciones de inicio");
@@ -450,14 +461,103 @@ public class HanddlerMessage extends Thread {
                         case "users":
                             response = userService.all();
                             if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
-                                htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                                htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
                                 clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                             } else {//Enviar una vista de error
                                 htmlContent = errorHTML(response.getError());
                                 clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
                             }
                             break;
-
+                        case "administradors":
+                            response = userService.allAdmin();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = userPresentation.listarAdminHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "pacientes":
+                            response = userService.allPacientes();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = userPresentation.listarPacienteHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "trabajadors":
+                            response = userService.allTrabajadores();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = userPresentation.listarTrabajadorHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "servicios":
+                            response = servicioService.all();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = listarHTML(response.getTitle(), response.getData(), listServicio, listAtrServicio, insertServicio, updateServicio, showServicio, deleteServicio);
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "fichas":
+                            response = fichaService.allFichas();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = fichaPresentation.listarFichaHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "horario_servicios":
+                            response = fichaService.allHorarioServicios();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = fichaPresentation.listarFichaHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "horarios":
+                            response = fichaService.allHorarios();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = fichaPresentation.listarFichaHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "dias":
+                            response = fichaService.allDias();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = fichaPresentation.listarFichaHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "pagos":
+                            response = pagoService.allPagos();
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
+                                htmlContent = htmlContent = generarPagoHTML(response.getTitle(), response.getData(), insertPago);
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
                         default:
                             htmlContent = errorHTML("Error la tabla '" + tabla + "' no existe");
                             clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), "Error", htmlContent);
@@ -468,7 +568,18 @@ public class HanddlerMessage extends Thread {
                             System.out.println("getAttributesName: " + comando.getAttributesName().length);
                             response = userService.listAtr(comando.getAttributesName(), comando.getAttributesNameToString());
                             if (response.getError() == null) {//Enviar por SMTP una vista con la lista de usuarios
-                                htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                                htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                            } else {//Enviar una vista de error
+                                htmlContent = errorHTML(response.getError());
+                                clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                            }
+                            break;
+                        case "servicios":
+                            System.out.println("getAttributesName: " + comando.getAttributesName().length);
+                            response = servicioService.listAtr(comando.getAttributesName(), comando.getAttributesNameToString());
+                            if (response.getError() == null) {//Enviar por SMTP una vista con la lista de servicios
+                                htmlContent = listarHTML(response.getTitle(), response.getData(), listServicio, listAtrServicio, insertServicio, updateServicio, showServicio, deleteServicio);
                                 clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                             } else {//Enviar una vista de error
                                 htmlContent = errorHTML(response.getError());
@@ -488,7 +599,40 @@ public class HanddlerMessage extends Thread {
                         response = userService.create(comando.getAttributesValue());
                         System.out.println(response.getTitle());
                         if (response.getError() == null) {
-                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "administradors":
+                        response = userService.createAdmin(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarAdminHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "pacientes":
+                        response = userService.createPaciente(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarPacienteHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "trabajadors":
+                        response = userService.createTrabajador(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarTrabajadorHTML(response.getTitle(), response.getData());
                             clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                         } else {
                             htmlContent = errorHTML(response.getError());
@@ -518,7 +662,7 @@ public class HanddlerMessage extends Thread {
                         response = userService.update(comando.getAttributesValue());
                         System.out.println(response.getTitle());
                         if (response.getError() == null) {
-                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
                             clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                         } else {
                             htmlContent = errorHTML(response.getError());
@@ -537,7 +681,54 @@ public class HanddlerMessage extends Thread {
                         response = userService.find(comando.getAttributesValue());
                         System.out.println(response.getTitle());
                         if (response.getError() == null) {
-                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "administradors":
+                        System.out.println("Ingresa al show admin");
+                        response = userService.findAdmin(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarAdminHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "pacientes":
+                        System.out.println("Ingresa al show paciente");
+                        response = userService.findPaciente(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarPacienteHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "trabajadors":
+                        System.out.println("Ingresa al show trabajador");
+                        response = userService.findTrabajador(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = userPresentation.listarTrabajadorHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "servicios":
+                        response = servicioService.find(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            htmlContent = listarHTML(response.getTitle(), response.getData(), listServicio, listAtrServicio, insertServicio, updateServicio, showServicio, deleteServicio);
                             clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                         } else {
                             htmlContent = errorHTML(response.getError());
@@ -556,7 +747,43 @@ public class HanddlerMessage extends Thread {
                         response = userService.delete(comando.getAttributesValue());
                         System.out.println(response.getTitle());
                         if (response.getError() == null) {
-                            htmlContent = listarHTML(response.getTitle(), response.getData(), listUser, listAtrUser, insertUser, updateUser, showUser, deleteUser);
+                            htmlContent = userPresentation.listarUserHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "administradors":
+                        response = userService.deleteAdmin(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            response = userService.allAdmin();
+                            htmlContent = userPresentation.listarAdminHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "pacientes":
+                        response = userService.deletePaciente(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            response = userService.allPacientes();
+                            htmlContent = userPresentation.listarAdminHTML(response.getTitle(), response.getData());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
+                        } else {
+                            htmlContent = errorHTML(response.getError());
+                            clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);
+                        }
+                        break;
+                    case "trabajadors":
+                        response = userService.deleteTrabajador(comando.getAttributesValue());
+                        System.out.println(response.getTitle());
+                        if (response.getError() == null) {
+                            response = userService.allTrabajadores();
+                            htmlContent = userPresentation.listarTrabajadorHTML(response.getTitle(), response.getData());
                             clientSMTP.enviarCorreo(mensajeEmisor.getCorreo(), response.getTitle(), htmlContent);//ENVIANDO RESPUESTA
                         } else {
                             htmlContent = errorHTML(response.getError());

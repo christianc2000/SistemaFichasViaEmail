@@ -5,12 +5,13 @@
 package com.grupo07sa.dato.Pago;
 
 import com.grupo07sa.dato.Pago.dto.PagoDTO;
+import java.util.List;
 
 /**
  *
  * @author USER
  */
 public interface PagoRepository {
-
+    List<PagoDTO> getAllPagos();
     PagoDTO createPago(PagoDTO pago);
 }
